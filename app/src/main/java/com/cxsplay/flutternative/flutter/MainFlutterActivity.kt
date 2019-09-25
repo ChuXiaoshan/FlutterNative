@@ -25,6 +25,7 @@ class MainFlutterActivity : BaseActivity() {
 
     private val msgChannel by lazy { BasicMessageChannel(flutterView, "com.cxsplay/test1", StandardMessageCodec.INSTANCE) }
     private val methodChannel by lazy { MethodChannel(flutterView, "com.cxsplay/test2") }
+    private val eventChannel by lazy { EventChannel(flutterView, "com.cxsplay/test3") }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,6 +50,11 @@ class MainFlutterActivity : BaseActivity() {
             bind.btn2.text = "method $num2"
             methodChannel.invokeMethod("num2Receiver", num2)
         }
+        bind.btn3.setOnClickListener {
+            num3++
+            bind.btn3.text = "event $num3"
+            myEvent?.success(num3)
+        }
         msgChannel()
         methodChannel()
         eventChannel()
@@ -67,7 +73,8 @@ class MainFlutterActivity : BaseActivity() {
     private fun methodChannel() {
         methodChannel.setMethodCallHandler { call, result ->
             if (call.method == "numberAdd") {
-                numAdd(call.arguments as Int)
+                num2 = call.arguments as Int
+                bind.btn2.text = "method $num2"
                 result.success("收到 $num2")
             } else {
                 result.notImplemented()
@@ -75,14 +82,8 @@ class MainFlutterActivity : BaseActivity() {
         }
     }
 
-    private fun numAdd(num: Int) {
-        num2 = num
-        bind.btn2.text = "method $num2"
-    }
-
     private fun eventChannel() {
-        EventChannel(flutterView, "com.cxsplay/testing").setStreamHandler(object : EventChannel.StreamHandler {
-
+        eventChannel.setStreamHandler(object : EventChannel.StreamHandler {
             override fun onListen(obj: Any?, event: EventChannel.EventSink?) {
                 myEvent = event
             }
